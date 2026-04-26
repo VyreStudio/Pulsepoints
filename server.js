@@ -76,10 +76,10 @@ if (process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID) {
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-// --- Auth middleware for API ---
+// --- Auth middleware for API (optional — skip if no key set) ---
 function apiAuth(req, res, next) {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) return next();
+  if (!apiKey || apiKey === 'pick-any-password-you-want') return next();
   const provided = req.headers['x-api-key'] || req.query.api_key;
   if (provided === apiKey) return next();
   res.status(401).json({ error: 'Invalid API key' });

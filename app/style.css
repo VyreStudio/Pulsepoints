@@ -178,6 +178,7 @@ body {
 
 #add-panel select,
 #add-panel input[type="text"],
+#add-panel input[type="date"],
 #add-panel textarea {
   width: 100%;
   background: #1a1a20;

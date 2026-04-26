@@ -420,8 +420,14 @@ document.getElementById('add-submit').addEventListener('click', () => {
   const text = document.getElementById('add-text').value;
   if (!text.trim()) return;
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const dateInput = document.getElementById('add-date').value;
+  let dateStr;
+  if (dateInput) {
+    const d = new Date(dateInput + 'T12:00:00');
+    dateStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  } else {
+    dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
 
   const newMemory = { type, text, who, date: dateStr, color: selectedColor };
 
@@ -447,6 +453,7 @@ document.getElementById('add-submit').addEventListener('click', () => {
   addPanel.classList.add('hidden');
   document.getElementById('add-text').value = '';
   document.getElementById('add-who').value = '';
+  document.getElementById('add-date').value = '';
   document.getElementById('add-song-title').value = '';
   document.getElementById('add-song-artist').value = '';
   document.getElementById('add-spotify').value = '';
