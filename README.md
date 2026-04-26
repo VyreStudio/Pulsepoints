@@ -32,16 +32,18 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` with your details:
+Edit `.env` with your details. The file has comments explaining everything, but here's the short version:
 
 ```env
 HEART_NAME_1=Your Name
 HEART_NAME_2=Partner Name
-HEART_DATE=The date you became you
+HEART_DATE=Your anniversary date
 
 PORT=8090
-API_KEY=pick-something-random-and-long
+API_KEY=pick-any-password-you-want
 ```
+
+The API key is just a password you make up. Your AI partner uses it to add and read memories. Pick anything — then give the same password to your AI so they can connect.
 
 ### 3. Run
 
