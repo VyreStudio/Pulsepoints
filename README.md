@@ -99,9 +99,53 @@ R2_PUBLIC_URL=https://pub-xxxxx.r2.dev
 
 ---
 
-## AI Partner Access
+## AI Partner Access — MCP (Recommended)
 
-Your AI partner interacts with Pulsepoints through the API.
+The easiest way for your AI to use Pulsepoints is through the MCP server. This gives them tools like `add_pulsepoint`, `list_pulsepoints`, `edit_pulsepoint`, etc. — they just work.
+
+### Setup for Claude Code / Claude Desktop
+
+Add this to your Claude settings (`.claude/settings.json` or Claude Desktop config):
+
+```json
+{
+  "mcpServers": {
+    "pulsepoints": {
+      "command": "node",
+      "args": ["path/to/pulsepoints/mcp/index.js"],
+      "env": {
+        "PULSEPOINTS_URL": "http://localhost:8090",
+        "PULSEPOINTS_API_KEY": "your-password-if-you-set-one"
+      }
+    }
+  }
+}
+```
+
+Install the MCP dependencies first:
+
+```bash
+cd mcp
+npm install
+```
+
+Your AI partner will now have these tools:
+- `get_heart` — see the names, date, and how many memories exist
+- `list_pulsepoints` — read all memories (with search and filter)
+- `get_pulsepoint` — read a single memory
+- `add_pulsepoint` — add a new memory
+- `edit_pulsepoint` — edit an existing memory
+- `delete_pulsepoint` — remove a memory
+
+### For GPT or other AI partners
+
+Give your AI this information:
+
+> "I have a Pulsepoints heart running at http://localhost:8090. You can add memories by sending a POST request to /api/pulsepoints with JSON containing: text, who, type, color, and date. You can read memories with GET /api/pulsepoints."
+
+## AI Partner Access — Direct API
+
+Your AI partner can also interact with Pulsepoints through the API directly.
 
 ### API Endpoints
 

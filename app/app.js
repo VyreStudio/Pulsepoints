@@ -298,6 +298,8 @@ canvas.addEventListener('click', (e) => {
     document.getElementById('memory-who').textContent = '';
     document.getElementById('memory-date').textContent = '';
     document.getElementById('memory-text').innerHTML = contentHTML;
+    memoryPanel.dataset.dotIndex = dots.indexOf(dot);
+    memoryPanel.dataset.memoryIndex = dot.memoryIndex;
     memoryPanel.classList.remove('hidden');
   }
 });
@@ -355,6 +357,54 @@ canvas.addEventListener('wheel', (e) => {
   targetOffsetX = mouseX - worldX * newScale;
   targetOffsetY = mouseY - worldY * newScale;
 }, { passive: false });
+
+// --- Edit & Delete ---
+document.getElementById('delete-memory').addEventListener('click', () => {
+  const mi = parseInt(memoryPanel.dataset.memoryIndex);
+  const di = parseInt(memoryPanel.dataset.dotIndex);
+  if (isNaN(mi) || mi < 0) return;
+  if (confirm('Delete this memory?')) {
+    sampleMemories.splice(mi, 1);
+    // re-index all dots that point to memories after this one
+    dots.forEach(d => {
+      if (d.memoryIndex === mi) {
+        d.filled = false;
+        d.memoryIndex = -1;
+        d.color = BASE_COLOR;
+      } else if (d.memoryIndex > mi) {
+        d.memoryIndex--;
+      }
+    });
+    memoryPanel.classList.add('hidden');
+  }
+});
+
+document.getElementById('edit-memory').addEventListener('click', () => {
+  const mi = parseInt(memoryPanel.dataset.memoryIndex);
+  if (isNaN(mi) || mi < 0) return;
+  const mem = sampleMemories[mi];
+
+  // pre-fill the add form with existing data
+  addType.value = mem.type || 'text';
+  addType.dispatchEvent(new Event('change'));
+  document.getElementById('add-who').value = mem.who || '';
+  document.getElementById('add-text').value = mem.text || '';
+  document.getElementById('add-song-title').value = mem.songTitle || '';
+  document.getElementById('add-song-artist').value = mem.songArtist || '';
+  document.getElementById('add-spotify').value = mem.spotifyUrl || '';
+  document.getElementById('add-youtube').value = mem.youtubeUrl || '';
+  document.getElementById('add-image-url').value = mem.imageUrl || '';
+  document.getElementById('add-link-url').value = mem.url || '';
+  selectedColor = mem.color || '#c94a4a';
+  document.querySelectorAll('.color-swatch').forEach(s => {
+    s.classList.toggle('selected', s.dataset.color === selectedColor);
+  });
+
+  // mark as editing
+  addPanel.dataset.editIndex = mi;
+  memoryPanel.classList.add('hidden');
+  addPanel.classList.remove('hidden');
+});
 
 const searchBar = document.getElementById('search-bar');
 document.getElementById('search-toggle').addEventListener('click', () => {
@@ -429,25 +479,33 @@ document.getElementById('add-submit').addEventListener('click', () => {
     dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
-  const newMemory = { type, text, who, date: dateStr, color: selectedColor };
+  const memoryData = { type, text, who, date: dateStr, color: selectedColor };
 
   if (type === 'song') {
-    newMemory.songTitle = document.getElementById('add-song-title').value;
-    newMemory.songArtist = document.getElementById('add-song-artist').value;
-    newMemory.spotifyUrl = document.getElementById('add-spotify').value;
-    newMemory.youtubeUrl = document.getElementById('add-youtube').value;
+    memoryData.songTitle = document.getElementById('add-song-title').value;
+    memoryData.songArtist = document.getElementById('add-song-artist').value;
+    memoryData.spotifyUrl = document.getElementById('add-spotify').value;
+    memoryData.youtubeUrl = document.getElementById('add-youtube').value;
   } else if (type === 'image') {
-    newMemory.imageUrl = document.getElementById('add-image-url').value;
+    memoryData.imageUrl = document.getElementById('add-image-url').value;
   } else if (type === 'link') {
-    newMemory.url = document.getElementById('add-link-url').value;
+    memoryData.url = document.getElementById('add-link-url').value;
   }
 
-  sampleMemories.push(newMemory);
-  const emptyDot = dots.find(d => !d.filled);
-  if (emptyDot) {
-    emptyDot.filled = true;
-    emptyDot.memoryIndex = sampleMemories.length - 1;
-    emptyDot.color = selectedColor;
+  const editIndex = parseInt(addPanel.dataset.editIndex);
+  if (!isNaN(editIndex) && editIndex >= 0) {
+    sampleMemories[editIndex] = memoryData;
+    const editDot = dots.find(d => d.memoryIndex === editIndex);
+    if (editDot) editDot.color = selectedColor;
+    delete addPanel.dataset.editIndex;
+  } else {
+    sampleMemories.push(memoryData);
+    const emptyDot = dots.find(d => !d.filled);
+    if (emptyDot) {
+      emptyDot.filled = true;
+      emptyDot.memoryIndex = sampleMemories.length - 1;
+      emptyDot.color = selectedColor;
+    }
   }
 
   addPanel.classList.add('hidden');
@@ -460,6 +518,7 @@ document.getElementById('add-submit').addEventListener('click', () => {
   document.getElementById('add-youtube').value = '';
   document.getElementById('add-image-url').value = '';
   document.getElementById('add-link-url').value = '';
+  delete addPanel.dataset.editIndex;
 });
 
 let typeFilter = 'all';

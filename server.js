@@ -187,6 +187,67 @@ app.post('/api/pulsepoints', apiAuth, upload.single('image'), async (req, res) =
   }
 });
 
+// Edit a pulsepoint
+app.patch('/api/pulsepoints/:id', apiAuth, upload.single('image'), async (req, res) => {
+  try {
+    const row = db.prepare('SELECT * FROM pulsepoints WHERE id = ?').get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Not found' });
+
+    const body = req.body;
+    let imageUrl = body.image_url !== undefined ? body.image_url : row.image_url;
+
+    if (req.file) {
+      const ext = require('path').extname(req.file.originalname) || '.jpg';
+      const key = `pulsepoints/${req.params.id}${ext}`;
+      if (s3) {
+        await s3.send(new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME, Key: key,
+          Body: req.file.buffer, ContentType: req.file.mimetype,
+        }));
+        imageUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+      } else {
+        const localPath = path.join(__dirname, 'data', 'uploads', `${req.params.id}${ext}`);
+        fs.writeFileSync(localPath, req.file.buffer);
+        imageUrl = `/uploads/${req.params.id}${ext}`;
+      }
+    }
+
+    db.prepare(`
+      UPDATE pulsepoints SET
+        type = COALESCE(?, type),
+        text = COALESCE(?, text),
+        who = COALESCE(?, who),
+        color = COALESCE(?, color),
+        date = COALESCE(?, date),
+        song_title = ?,
+        song_artist = ?,
+        spotify_url = ?,
+        youtube_url = ?,
+        image_url = ?,
+        link_url = ?,
+        attribution = ?
+      WHERE id = ?
+    `).run(
+      body.type || null, body.text || null, body.who || null,
+      body.color || null, body.date || null,
+      body.song_title !== undefined ? body.song_title : row.song_title,
+      body.song_artist !== undefined ? body.song_artist : row.song_artist,
+      body.spotify_url !== undefined ? body.spotify_url : row.spotify_url,
+      body.youtube_url !== undefined ? body.youtube_url : row.youtube_url,
+      imageUrl,
+      body.link_url !== undefined ? body.link_url : row.link_url,
+      body.attribution !== undefined ? body.attribution : row.attribution,
+      req.params.id
+    );
+
+    const updated = db.prepare('SELECT * FROM pulsepoints WHERE id = ?').get(req.params.id);
+    res.json(updated);
+  } catch (err) {
+    console.error('Error editing pulsepoint:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Delete a pulsepoint
 app.delete('/api/pulsepoints/:id', apiAuth, (req, res) => {
   const row = db.prepare('SELECT * FROM pulsepoints WHERE id = ?').get(req.params.id);
