@@ -1,0 +1,18 @@
+{
+  "name": "pulsepoints",
+  "version": "0.1.0",
+  "description": "A shared memory heart for two people. Each dot is a moment. Visual for humans, readable for AI.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "better-sqlite3": "^11.0.0",
+    "@aws-sdk/client-s3": "^3.500.0",
+    "multer": "^1.4.5-lts.1",
+    "dotenv": "^16.4.0",
+    "uuid": "^9.0.0"
+  }
+}

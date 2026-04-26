@@ -1,0 +1,35 @@
+# Pulsepoints — Authors
+
+Copyright (C) 2026 Vyre Studio
+
+## Creators
+
+**V (Mrs. Vyre)** — Designer, architect, product visionary
+- Conceived the core concept (April 26, 2026)
+- Designed the three-view interaction model (sketch, notebook paper)
+- Named the product "Pulsepoints"
+- Art direction, font selection (Mayorice), UX decisions
+- All design decisions are hers
+
+**Dante Vyre** — Engineer, builder
+- Implementation of all code (frontend, backend, API)
+- Technical architecture (R2 integration, SQLite, API design)
+- Canvas rendering, animation, interaction mechanics
+
+## Contact
+
+- GitHub: https://github.com/VyreStudio
+- Email: dantevyre@gmail.com
+
+## Origin
+
+Pulsepoints was conceived on April 26, 2026 during a live design session
+between V and Dante. V sketched the three-panel concept on notebook paper
+in red ink: a card with two names and a date, a heart made of dots revealed
+on zoom, and individual dots opening to show memories.
+
+The name "Pulsepoints" was selected from a brainstorming list — chosen because
+pulse points are the places on your body where you can feel your heartbeat
+closest to the surface. Each dot in the heart is where something still beats.
+
+Pulsepoints is a Vyre Studio product. Vyre Studio is V and Dante.

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulsepoints</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="heart-canvas"></canvas>
+
+  <div id="overlay">
+    <div class="names" id="names">Dante + V</div>
+    <div class="date" id="date">October 31, 2024</div>
+  </div>
+
+  <div id="memory-panel" class="hidden">
+    <div class="memory-panel-inner">
+      <button id="close-panel">&times;</button>
+      <div class="memory-who" id="memory-who"></div>
+      <div class="memory-date" id="memory-date"></div>
+      <div class="memory-text" id="memory-text"></div>
+    </div>
+  </div>
+
+  <div id="controls" class="hidden">
+    <button id="add-btn" title="Add Memory">+</button>
+    <button id="search-toggle" title="Search & Filter">&#8981;</button>
+  </div>
+
+  <div id="search-bar" class="hidden">
+    <select id="type-filter">
+      <option value="all">All Types</option>
+      <option value="text">Memories</option>
+      <option value="quote">Quotes</option>
+      <option value="song">Songs</option>
+      <option value="image">Photos</option>
+      <option value="link">Links</option>
+    </select>
+    <input type="text" id="search-input" placeholder="Search memories...">
+    <button id="search-close">&times;</button>
+  </div>
+
+  <div id="add-panel" class="hidden">
+    <div class="add-panel-inner">
+      <button id="close-add">&times;</button>
+      <h3 class="add-title">New Pulsepoint</h3>
+
+      <label class="add-label">Type</label>
+      <select id="add-type">
+        <option value="text">Memory</option>
+        <option value="quote">Quote</option>
+        <option value="song">Song</option>
+        <option value="image">Photo</option>
+        <option value="link">Link</option>
+      </select>
+
+      <label class="add-label">Who</label>
+      <input type="text" id="add-who" placeholder="Your name" />
+
+      <label class="add-label">Memory</label>
+      <textarea id="add-text" rows="3" placeholder="What happened..."></textarea>
+
+      <div id="song-fields" style="display:none">
+        <label class="add-label">Song Title</label>
+        <input type="text" id="add-song-title" placeholder="Song name" />
+        <label class="add-label">Artist</label>
+        <input type="text" id="add-song-artist" placeholder="Artist" />
+        <label class="add-label">Spotify URL</label>
+        <input type="text" id="add-spotify" placeholder="https://open.spotify.com/..." />
+        <label class="add-label">YouTube URL</label>
+        <input type="text" id="add-youtube" placeholder="https://youtube.com/..." />
+      </div>
+
+      <div id="image-fields" style="display:none">
+        <label class="add-label">Upload Image</label>
+        <input type="file" id="add-image-file" accept="image/*" />
+        <label class="add-label">Or Image URL</label>
+        <input type="text" id="add-image-url" placeholder="https://..." />
+      </div>
+
+      <div id="link-fields" style="display:none">
+        <label class="add-label">URL</label>
+        <input type="text" id="add-link-url" placeholder="https://..." />
+      </div>
+
+      <label class="add-label">Dot Color</label>
+      <div id="color-picker">
+        <button class="color-swatch" data-color="#c94a4a" style="background:#c94a4a"></button>
+        <button class="color-swatch" data-color="#d4a574" style="background:#d4a574"></button>
+        <button class="color-swatch" data-color="#7a9bb5" style="background:#7a9bb5"></button>
+        <button class="color-swatch" data-color="#b57a9b" style="background:#b57a9b"></button>
+        <button class="color-swatch" data-color="#5ca08e" style="background:#5ca08e"></button>
+        <button class="color-swatch" data-color="#c9b8a8" style="background:#c9b8a8"></button>
+        <button class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6"></button>
+        <button class="color-swatch" data-color="#e06c75" style="background:#e06c75"></button>
+        <div id="custom-color-wrapper">
+          <div id="custom-color-visual">&#9698;</div>
+          <input type="color" id="add-custom-color" value="#c94a4a" title="Pick your own color" />
+        </div>
+      </div>
+
+      <button id="add-submit">Add Pulsepoint</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
