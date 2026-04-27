@@ -38,7 +38,7 @@ const MEMORY_TYPES = {
   link: { label: "Link", icon: "🔗" },
 };
 
-const sampleMemories = [];
+let memories = [];
 
 function heartX(t) {
   return 16 * Math.pow(Math.sin(t), 3);
@@ -100,7 +100,7 @@ function generateDots() {
     }
 
     if (!tooClose) {
-      const memoryIndex = placed < sampleMemories.length ? placed : -1;
+      const memoryIndex = placed < memories.length ? placed : -1;
       const baseRadius = scaleH * 0.32 + Math.random() * scaleH * 0.12;
       dots.push({
         x: px,
@@ -111,7 +111,7 @@ function generateDots() {
         baseRadius: baseRadius,
         filled: memoryIndex >= 0,
         memoryIndex: memoryIndex,
-        color: memoryIndex >= 0 ? sampleMemories[memoryIndex].color : BASE_COLOR,
+        color: memoryIndex >= 0 ? memories[memoryIndex].color : BASE_COLOR,
         highlight: false,
         phase: Math.random() * Math.PI * 2,
         driftPhaseX: Math.random() * Math.PI * 2,
@@ -266,7 +266,7 @@ canvas.addEventListener('click', (e) => {
     return;
   }
   if (dot && dot.filled && dot.memoryIndex >= 0) {
-    const mem = sampleMemories[dot.memoryIndex];
+    const mem = memories[dot.memoryIndex];
     const typeInfo = MEMORY_TYPES[mem.type] || MEMORY_TYPES.text;
 
     let contentHTML = '';
@@ -364,8 +364,11 @@ document.getElementById('delete-memory').addEventListener('click', () => {
   const di = parseInt(memoryPanel.dataset.dotIndex);
   if (isNaN(mi) || mi < 0) return;
   if (confirm('Delete this memory?')) {
-    sampleMemories.splice(mi, 1);
-    // re-index all dots that point to memories after this one
+    const mem = memories[mi];
+    if (mem && mem.id) {
+      fetch(`/api/pulsepoints/${mem.id}`, { method: 'DELETE' }).catch(() => {});
+    }
+    memories.splice(mi, 1);
     dots.forEach(d => {
       if (d.memoryIndex === mi) {
         d.filled = false;
@@ -382,7 +385,7 @@ document.getElementById('delete-memory').addEventListener('click', () => {
 document.getElementById('edit-memory').addEventListener('click', () => {
   const mi = parseInt(memoryPanel.dataset.memoryIndex);
   if (isNaN(mi) || mi < 0) return;
-  const mem = sampleMemories[mi];
+  const mem = memories[mi];
 
   // pre-fill the add form with existing data
   addType.value = mem.type || 'text';
@@ -494,16 +497,46 @@ document.getElementById('add-submit').addEventListener('click', () => {
 
   const editIndex = parseInt(addPanel.dataset.editIndex);
   if (!isNaN(editIndex) && editIndex >= 0) {
-    sampleMemories[editIndex] = memoryData;
+    const existing = memories[editIndex];
+    if (existing && existing.id) {
+      fetch(`/api/pulsepoints/${existing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: memoryData.type, text: memoryData.text, who: memoryData.who,
+          color: memoryData.color, date: memoryData.date,
+          song_title: memoryData.songTitle, song_artist: memoryData.songArtist,
+          spotify_url: memoryData.spotifyUrl, youtube_url: memoryData.youtubeUrl,
+          image_url: memoryData.imageUrl, link_url: memoryData.url,
+          attribution: memoryData.attribution,
+        }),
+      }).catch(() => {});
+      memoryData.id = existing.id;
+    }
+    memories[editIndex] = memoryData;
     const editDot = dots.find(d => d.memoryIndex === editIndex);
     if (editDot) editDot.color = selectedColor;
     delete addPanel.dataset.editIndex;
   } else {
-    sampleMemories.push(memoryData);
+    fetch('/api/pulsepoints', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: memoryData.type, text: memoryData.text, who: memoryData.who,
+        color: memoryData.color, date: memoryData.date,
+        song_title: memoryData.songTitle, song_artist: memoryData.songArtist,
+        spotify_url: memoryData.spotifyUrl, youtube_url: memoryData.youtubeUrl,
+        image_url: memoryData.imageUrl, link_url: memoryData.url,
+        attribution: memoryData.attribution,
+      }),
+    }).then(r => r.json()).then(saved => {
+      memoryData.id = saved.id;
+    }).catch(() => {});
+    memories.push(memoryData);
     const emptyDot = dots.find(d => !d.filled);
     if (emptyDot) {
       emptyDot.filled = true;
-      emptyDot.memoryIndex = sampleMemories.length - 1;
+      emptyDot.memoryIndex = memories.length - 1;
       emptyDot.color = selectedColor;
     }
   }
@@ -540,7 +573,7 @@ function applyFilters() {
       d.highlight = false;
       return;
     }
-    const mem = sampleMemories[d.memoryIndex];
+    const mem = memories[d.memoryIndex];
     let matchesType = typeFilter === 'all' || mem.type === typeFilter;
     let matchesSearch = !searchTerm ||
       mem.text.toLowerCase().includes(searchTerm) ||
@@ -566,7 +599,50 @@ window.addEventListener('resize', () => {
   }
 });
 
+async function loadFromServer() {
+  try {
+    const heartRes = await fetch('/api/heart');
+    if (heartRes.ok) {
+      const heart = await heartRes.json();
+      namesEl.textContent = `${heart.name1} + ${heart.name2}`;
+      dateEl.textContent = heart.heart_date;
+    }
+
+    const memRes = await fetch('/api/pulsepoints');
+    if (memRes.ok) {
+      const data = await memRes.json();
+      memories = data.pulsepoints.map(p => ({
+        id: p.id,
+        type: p.type,
+        text: p.text,
+        who: p.who,
+        color: p.color,
+        date: p.date,
+        songTitle: p.song_title,
+        songArtist: p.song_artist,
+        spotifyUrl: p.spotify_url,
+        youtubeUrl: p.youtube_url,
+        imageUrl: p.image_url,
+        url: p.link_url,
+        attribution: p.attribution,
+      }));
+      // fill dots with loaded memories
+      let mi = 0;
+      for (const dot of dots) {
+        if (mi >= memories.length) break;
+        dot.filled = true;
+        dot.memoryIndex = mi;
+        dot.color = memories[mi].color;
+        mi++;
+      }
+    }
+  } catch (e) {
+    console.log('No server — running in static mode');
+  }
+}
+
 resize();
 generateStars();
 generateDots();
+loadFromServer();
 draw();
